@@ -1,4 +1,4 @@
-
+﻿
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,6 +10,9 @@
   >
   <meta name="theme-color" content="#0b0d12">
   <title>ace.portfolio | Developer Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
   <script src="/script.js" defer></script>
 </head>
@@ -38,52 +41,77 @@
         <li><a href="#about">About</a></li>
         <li><a href="#projects">Projects</a></li>
         <li><a href="#skills">Skills</a></li>
-        <li><a class="nav-contact" href="#contact">Contact <span>↗</span></a></li>
+        <li><a class="nav-contact" href="#contact">Contact <span>&#8599;</span></a></li>
       </ul>
     </nav>
   </header>
 
   <main>
     <section class="hero section" id="home">
-      <div class="container hero-content">
-        <p class="eyebrow"><span class="status-dot"></span> DEVELOPER IN PROGRESS</p>
+  <div class="container hero-content">
+    <p class="eyebrow"><span class="status-dot"></span> DEVELOPER IN PROGRESS</p>
 
-        <h1>
-          Turning ideas into
-          <span class="gradient-text">working code.</span>
-        </h1>
+    <h1>
+      Turning ideas into
+      <span class="gradient-text">working code.</span>
+    </h1>
 
-        <p class="hero-description">
-          Hi, I'm Ace. I'm a beginner developer learning to build useful
-          software, AI-powered tools, bots, and web experiences.
-        </p>
+    <p class="hero-description">
+      Hi, I'm Ace. I'm a beginner developer learning to build useful
+      software, AI-powered tools, bots, and web experiences.
+    </p>
 
-        <div class="hero-actions">
-          <a class="button button-primary" href="#projects">
-            Explore my projects <span>↗</span>
-          </a>
-          <a
-            class="button button-secondary"
-            href="https://github.com/aceyen0969-new"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Visit GitHub <span>↗</span>
-          </a>
-        </div>
+    <div class="hero-actions">
+      <a class="button button-primary" href="#projects">
+        Explore my projects <span>&#8599;</span>
+      </a>
+      <a
+        class="button button-secondary"
+        href="https://github.com/aceyen0969-new"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Visit GitHub <span>&#8599;</span>
+      </a>
+    </div>
 
-        <div class="hero-meta">
-          <span><span class="status-dot"></span> Learning by building</span>
-          <span>Python · JavaScript · C++</span>
-        </div>
+    <div class="hero-meta">
+      <span><span class="status-dot"></span> Learning by building</span>
+      <span>Python &middot; JavaScript &middot; C++</span>
+    </div>
+  </div>
+
+  <div class="code-window" aria-label="Python code editor">
+    <div class="window-top">
+      <div class="window-dots" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
       </div>
+      <span class="window-file">developer.py</span>
+      <span class="window-symbol">&lt;/&gt;</span>
+    </div>
 
-      <div class="hero-decoration" aria-hidden="true">
-        <div class="orbit orbit-one"></div>
-        <div class="orbit orbit-two"></div>
-        <div class="orbit-core">&lt;/&gt;</div>
-      </div>
-    </section>
+    <div class="code-content">
+      <div><span class="line-number">01</span><span class="code-purple">class</span> <span class="code-yellow">Developer</span>:</div>
+      <div><span class="line-number">02</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-purple">def</span> <span class="code-blue">__init__</span>(self):</div>
+      <div><span class="line-number">03</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.name = <span class="code-green">"Ace"</span></div>
+      <div><span class="line-number">04</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.level = <span class="code-green">"beginner"</span></div>
+      <div><span class="line-number">05</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.curiosity = <span class="code-orange">True</span></div>
+      <div><span class="line-number">06</span></div>
+      <div><span class="line-number">07</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-purple">def</span> <span class="code-blue">learn</span>(self):</div>
+      <div><span class="line-number">08</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-purple">while</span> <span class="code-orange">True</span>:</div>
+      <div><span class="line-number">09</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.build_projects()</div>
+      <div><span class="line-number">10</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.solve_problems()</div>
+      <div><span class="line-number">11</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.get_better()<span class="cursor"></span></div>
+    </div>
+
+    <div class="window-footer">
+      <span>Python 3</span>
+      <span>Learning mode: ON</span>
+    </div>
+  </div>
+</section>
 
     <section class="about section" id="about">
       <div class="container">
@@ -98,7 +126,7 @@
 
         <div class="about-grid">
           <article class="info-card">
-            <span class="card-icon" aria-hidden="true">⌘</span>
+            <span class="card-icon" aria-hidden="true">&#9881;</span>
             <h3>Build</h3>
             <p>
               I create projects to turn programming concepts into practical
@@ -107,7 +135,7 @@
           </article>
 
           <article class="info-card">
-            <span class="card-icon" aria-hidden="true">⌁</span>
+            <span class="card-icon" aria-hidden="true">&#10024;</span>
             <h3>Explore</h3>
             <p>
               I'm learning about APIs, backend development, AI integrations,
@@ -116,7 +144,7 @@
           </article>
 
           <article class="info-card">
-            <span class="card-icon" aria-hidden="true">↗</span>
+            <span class="card-icon" aria-hidden="true">&#8599;</span>
             <h3>Improve</h3>
             <p>
               Every project gives me a chance to debug, experiment, and become
@@ -154,7 +182,7 @@
             target="_blank"
             rel="noopener noreferrer"
           >
-            View all repositories <span>↗</span>
+            View all repositories <span>&#8599;</span>
           </a>
         </div>
       </div>
@@ -201,7 +229,7 @@
 
           <article class="skill-card">
             <div class="skill-top">
-              <span class="skill-icon" aria-hidden="true">⌘</span>
+              <span class="skill-icon" aria-hidden="true">&#9881;</span>
               <span class="skill-level">Exploring</span>
             </div>
             <h3>Git and GitHub</h3>
@@ -250,7 +278,7 @@
               <strong>Find me on GitHub</strong>
               <small>@aceyen0969-new</small>
             </span>
-            <span class="social-arrow">↗</span>
+            <span class="social-arrow">&#8599;</span>
           </a>
         </div>
 
@@ -308,7 +336,7 @@
             class="button button-primary submit-button"
             type="submit"
           >
-            Send message <span>↗</span>
+            Send message <span>&#8599;</span>
           </button>
 
           <p class="form-note" id="form-note" role="status" aria-live="polite">
@@ -328,12 +356,13 @@
         target="_blank"
         rel="noopener noreferrer"
       >
-        GitHub <span>↗</span>
+        GitHub <span>&#8599;</span>
       </a>
       <p class="copyright">
-        © <span id="current-year"></span> ace.portfolio
+        &#169; <span id="current-year"></span> ace.portfolio
       </p>
     </div>
   </footer>
 </body>
 </html>
+
