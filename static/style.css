@@ -1364,3 +1364,34 @@ body {
     padding-inline: 2px;
   }
 }
+
+@media (max-width: 650px) {
+  .hero-actions {
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  .hero-actions .button {
+    flex: 0 1 auto;
+    width: auto;
+    max-width: 100%;
+    min-height: 42px;
+    padding: 10px 14px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 360px) {
+  .hero-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .hero-actions .button {
+    width: auto;
+    flex: 0 1 auto;
+    padding-inline: 10px;
+    font-size: 11px;
+  }
+}
