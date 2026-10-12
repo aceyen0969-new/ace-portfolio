@@ -1,0 +1,339 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="description"
+    content="Ace's developer portfolio, featuring software projects, programming skills, and ways to get in touch."
+  >
+  <meta name="theme-color" content="#0b0d12">
+  <title>ace.portfolio | Developer Portfolio</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/script.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="navbar container" aria-label="Main navigation">
+      <a class="logo" href="#home" aria-label="ace.portfolio home">
+        ace<span>.</span>portfolio
+      </a>
+
+      <button
+        class="menu-toggle"
+        id="menu-toggle"
+        type="button"
+        aria-label="Toggle navigation"
+        aria-expanded="false"
+        aria-controls="nav-links"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#skills">Skills</a></li>
+        <li><a class="nav-contact" href="#contact">Contact <span>↗</span></a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero section" id="home">
+      <div class="container hero-content">
+        <p class="eyebrow"><span class="status-dot"></span> DEVELOPER IN PROGRESS</p>
+
+        <h1>
+          Turning ideas into
+          <span class="gradient-text">working code.</span>
+        </h1>
+
+        <p class="hero-description">
+          Hi, I'm Ace. I'm a beginner developer learning to build useful
+          software, AI-powered tools, bots, and web experiences.
+        </p>
+
+        <div class="hero-actions">
+          <a class="button button-primary" href="#projects">
+            Explore my projects <span>↗</span>
+          </a>
+          <a
+            class="button button-secondary"
+            href="https://github.com/aceyen0969-new"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Visit GitHub <span>↗</span>
+          </a>
+        </div>
+
+        <div class="hero-meta">
+          <span><span class="status-dot"></span> Learning by building</span>
+          <span>Python · JavaScript · C++</span>
+        </div>
+      </div>
+
+      <div class="hero-decoration" aria-hidden="true">
+        <div class="orbit orbit-one"></div>
+        <div class="orbit orbit-two"></div>
+        <div class="orbit-core">&lt;/&gt;</div>
+      </div>
+    </section>
+
+    <section class="about section" id="about">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">01 / ABOUT ME</p>
+          <h2>Curiosity becomes <span class="gradient-text">creation.</span></h2>
+          <p>
+            I'm exploring how software works, from simple websites to bots
+            that can assist communities and automate tasks.
+          </p>
+        </div>
+
+        <div class="about-grid">
+          <article class="info-card">
+            <span class="card-icon" aria-hidden="true">⌘</span>
+            <h3>Build</h3>
+            <p>
+              I create projects to turn programming concepts into practical
+              applications.
+            </p>
+          </article>
+
+          <article class="info-card">
+            <span class="card-icon" aria-hidden="true">⌁</span>
+            <h3>Explore</h3>
+            <p>
+              I'm learning about APIs, backend development, AI integrations,
+              and software architecture.
+            </p>
+          </article>
+
+          <article class="info-card">
+            <span class="card-icon" aria-hidden="true">↗</span>
+            <h3>Improve</h3>
+            <p>
+              Every project gives me a chance to debug, experiment, and become
+              a better developer.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="projects section" id="projects">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">02 / SELECTED WORK</p>
+          <h2>Projects from my <span class="gradient-text">GitHub.</span></h2>
+          <p>
+            This gallery loads my public repositories automatically.
+            Project descriptions are taken from their README files when available.
+          </p>
+        </div>
+
+        <div
+          class="project-grid"
+          id="project-grid"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <p class="projects-message">Loading repositories from GitHub...</p>
+        </div>
+
+        <div class="projects-footer">
+          <a
+            class="button button-secondary"
+            href="https://github.com/aceyen0969-new?tab=repositories"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View all repositories <span>↗</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="skills section" id="skills">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">03 / TOOLKIT</p>
+          <h2>What I'm <span class="gradient-text">learning.</span></h2>
+          <p>
+            My toolkit is growing as I work on projects and explore new
+            technologies.
+          </p>
+        </div>
+
+        <div class="skills-grid">
+          <article class="skill-card">
+            <div class="skill-top">
+              <span class="skill-icon" aria-hidden="true">Py</span>
+              <span class="skill-level">Learning</span>
+            </div>
+            <h3>Python</h3>
+            <p>Automation, APIs, bots, and backend development.</p>
+          </article>
+
+          <article class="skill-card">
+            <div class="skill-top">
+              <span class="skill-icon" aria-hidden="true">JS</span>
+              <span class="skill-level">Learning</span>
+            </div>
+            <h3>JavaScript</h3>
+            <p>Interactive websites and client-side functionality.</p>
+          </article>
+
+          <article class="skill-card">
+            <div class="skill-top">
+              <span class="skill-icon" aria-hidden="true">C++</span>
+              <span class="skill-level">Learning</span>
+            </div>
+            <h3>C++</h3>
+            <p>Programming fundamentals and problem-solving.</p>
+          </article>
+
+          <article class="skill-card">
+            <div class="skill-top">
+              <span class="skill-icon" aria-hidden="true">⌘</span>
+              <span class="skill-level">Exploring</span>
+            </div>
+            <h3>Git and GitHub</h3>
+            <p>Version control, project history, and collaboration.</p>
+          </article>
+
+          <article class="skill-card">
+            <div class="skill-top">
+              <span class="skill-icon" aria-hidden="true">API</span>
+              <span class="skill-level">Exploring</span>
+            </div>
+            <h3>APIs and backend</h3>
+            <p>Connecting applications to external services and data.</p>
+          </article>
+
+          <article class="skill-card">
+            <div class="skill-top">
+              <span class="skill-icon" aria-hidden="true">AI</span>
+              <span class="skill-level">Exploring</span>
+            </div>
+            <h3>AI integrations</h3>
+            <p>Experimenting with AI providers and assistant features.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact section" id="contact">
+      <div class="container contact-grid">
+        <div class="contact-copy">
+          <p class="eyebrow">04 / GET IN TOUCH</p>
+          <h2>Have an idea? <span class="gradient-text">Let's talk.</span></h2>
+          <p>
+            Have a question, a project idea, or feedback about my work?
+            Send me a message using the form.
+          </p>
+
+          <a
+            class="contact-github"
+            href="https://github.com/aceyen0969-new"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="social-icon" aria-hidden="true">GH</span>
+            <span>
+              <strong>Find me on GitHub</strong>
+              <small>@aceyen0969-new</small>
+            </span>
+            <span class="social-arrow">↗</span>
+          </a>
+        </div>
+
+        <form class="contact-form" id="contact-form">
+          <div class="honeypot-field" aria-hidden="true">
+            <label for="company">Leave this field empty</label>
+            <input
+              type="text"
+              id="company"
+              name="company"
+              tabindex="-1"
+              autocomplete="off"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="sender-name">Your name</label>
+            <input
+              type="text"
+              id="sender-name"
+              name="name"
+              placeholder="Enter your name"
+              maxlength="80"
+              autocomplete="name"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="sender-email">Your email</label>
+            <input
+              type="email"
+              id="sender-email"
+              name="email"
+              placeholder="you@example.com"
+              maxlength="150"
+              autocomplete="email"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="sender-message">Message</label>
+            <textarea
+              id="sender-message"
+              name="message"
+              placeholder="Tell me what's on your mind..."
+              rows="5"
+              maxlength="3000"
+              required
+            ></textarea>
+          </div>
+
+          <button
+            class="button button-primary submit-button"
+            type="submit"
+          >
+            Send message <span>↗</span>
+          </button>
+
+          <p class="form-note" id="form-note" role="status" aria-live="polite">
+            Your message will be sent through the contact service.
+          </p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-content">
+      <a class="logo" href="#home">ace<span>.</span>portfolio</a>
+      <p>Built with curiosity and code.</p>
+      <a
+        href="https://github.com/aceyen0969-new"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        GitHub <span>↗</span>
+      </a>
+      <p class="copyright">
+        © <span id="current-year"></span> ace.portfolio
+      </p>
+    </div>
+  </footer>
+</body>
+</html>
