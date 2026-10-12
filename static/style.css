@@ -1261,3 +1261,106 @@ textarea:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.hero,
+.hero-content,
+.code-window {
+  min-width: 0;
+}
+
+@media (max-width: 650px) {
+  .hero {
+    gap: 32px;
+    padding-top: 88px;
+    padding-bottom: 88px;
+  }
+
+  .hero h1 {
+    max-width: 100%;
+    font-size: clamp(38px, 10vw, 52px);
+    letter-spacing: -2px;
+    overflow-wrap: break-word;
+  }
+
+  .hero-description {
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  .hero-actions {
+    width: 100%;
+    gap: 10px;
+  }
+
+  .hero-actions .button {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .code-window {
+    width: 100%;
+    max-width: 100%;
+    transform: none;
+  }
+
+  .window-top,
+  .window-footer {
+    gap: 8px;
+    padding-inline: 12px;
+  }
+
+  .window-file,
+  .window-footer {
+    min-width: 0;
+  }
+
+  .code-content {
+    max-width: 100%;
+    overflow-x: auto;
+    font-size: 11px;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 360px) {
+  .hero {
+    padding-top: 76px;
+    padding-bottom: 76px;
+  }
+
+  .hero h1 {
+    font-size: 36px;
+    letter-spacing: -1.5px;
+  }
+
+  .hero-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .hero-actions .button {
+    width: 100%;
+  }
+
+  .window-symbol {
+    display: none;
+  }
+}
+
+@media (max-width: 650px) {
+  .hero > .hero-content {
+    padding-inline: 4px;
+  }
+}
+
+@media (max-width: 360px) {
+  .hero > .hero-content {
+    padding-inline: 2px;
+  }
+}
