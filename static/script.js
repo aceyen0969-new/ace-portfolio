@@ -1,15 +1,16 @@
-
 const SITE_CONFIG = {
   githubUsername: "aceyen0969-new",
-  featuredRepository: "quasar"
+  featuredRepository: "quasar",
+  projectsEndpoint: "/api/projects",
+  contactEndpoint: "/api/contact"
 };
 
 const contactForm = document.querySelector("#contact-form");
 const formNote = document.querySelector("#form-note");
 const projectGrid = document.querySelector("#project-grid");
 
-const escapeHTML = (value) =>
-  String(value ?? "").replace(/[&<>"']/g, (character) => {
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => {
     const entities = {
       "&": "&amp;",
       "<": "&lt;",
@@ -20,45 +21,28 @@ const escapeHTML = (value) =>
 
     return entities[character];
   });
+}
 
 function initializeNavigation() {
-  const menuToggle = document.querySelector("#menu-toggle");
-  const navLinks = document.querySelector("#nav-links");
+  const menuToggle = document.querySelector(".menu-toggle");
+  const navigation = document.querySelector(".nav-links");
 
-  if (!menuToggle || !navLinks) {
+  if (!menuToggle || !navigation) {
     return;
   }
 
-  const closeMenu = () => {
-    menuToggle.setAttribute("aria-expanded", "false");
-    navLinks.classList.remove("is-open");
-  };
-
   menuToggle.addEventListener("click", () => {
-    const isExpanded =
-      menuToggle.getAttribute("aria-expanded") === "true";
+    const isExpanded = menuToggle.getAttribute("aria-expanded") === "true";
 
     menuToggle.setAttribute("aria-expanded", String(!isExpanded));
-    navLinks.classList.toggle("is-open", !isExpanded);
+    navigation.classList.toggle("active", !isExpanded);
   });
 
-  navLinks.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", closeMenu);
-  });
-
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      closeMenu();
-    }
-  });
-
-  document.addEventListener("click", (event) => {
-    if (
-      !navLinks.contains(event.target) &&
-      !menuToggle.contains(event.target)
-    ) {
-      closeMenu();
-    }
+  navigation.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => {
+      navigation.classList.remove("active");
+      menuToggle.setAttribute("aria-expanded", "false");
+    });
   });
 }
 
@@ -78,10 +62,10 @@ function renderProjects(repositories) {
   if (!Array.isArray(repositories) || repositories.length === 0) {
     projectGrid.innerHTML = `
       <p class="projects-message">
-        No public projects were returned.
-        Visit GitHub to browse all repositories.
+        No public projects are available to display yet.
       </p>
     `;
+
     projectGrid.setAttribute("aria-busy", "false");
     return;
   }
@@ -90,9 +74,10 @@ function renderProjects(repositories) {
 
   const orderedRepositories = [...repositories].sort((first, second) => {
     const firstFeatured =
-      first.name.toLowerCase() === featuredName;
+      first.name?.toLowerCase() === featuredName;
+
     const secondFeatured =
-      second.name.toLowerCase() === featuredName;
+      second.name?.toLowerCase() === featuredName;
 
     if (firstFeatured !== secondFeatured) {
       return firstFeatured ? -1 : 1;
@@ -106,39 +91,54 @@ function renderProjects(repositories) {
 
   projectGrid.innerHTML = orderedRepositories
     .map((repository) => {
-      const name = escapeHTML(repository.name);
+      const name = escapeHTML(repository.name || "Untitled project");
       const description = escapeHTML(
-        repository.description || "No description provided yet."
+        repository.description || "Explore this project on GitHub."
       );
-      const language = escapeHTML(repository.language || "Other");
+      const language = escapeHTML(repository.language || "Various");
       const stars = Number(repository.stargazers_count) || 0;
       const forks = Number(repository.forks_count) || 0;
-      const url = String(repository.html_url || "");
-      const validUrl =
-        url.startsWith("https://github.com/") ? url : "#";
+      const rawUrl = String(repository.html_url || "");
+
+      const validUrl = /^https:\/\/github\.com\/[^/]+\/[^/]+\/?$/i.test(
+        rawUrl
+      );
+
+      const url = validUrl ? rawUrl : "#";
       const isFeatured =
-        repository.name.toLowerCase() === featuredName;
+        repository.name?.toLowerCase() === featuredName;
 
       return `
-        <article class="project-card${isFeatured ? " project-card-featured" : ""}">
+        <article class="project-card">
           <div class="project-card-top">
-            <span class="project-language">${language}</span>
-            ${isFeatured ? '<span class="project-featured">Featured</span>' : ""}
+            <span class="project-icon" aria-hidden="true">&lt;/&gt;</span>
+            <span class="project-visibility">
+              ${isFeatured ? "Featured project" : "Public repository"}
+            </span>
           </div>
+
           <h3>${name}</h3>
-          <p>${description}</p>
-          <div class="project-stats">
-            <span>★ ${stars} stars</span>
-            <span>⑂ ${forks} forks</span>
+
+          <p class="project-description">${description}</p>
+
+          <div class="project-meta">
+            <span class="project-language">
+              <span class="language-dot" aria-hidden="true"></span>
+              ${language}
+            </span>
+
+            <span>★ ${stars}</span>
+            <span>⑂ ${forks}</span>
           </div>
+
           <a
             class="project-link"
-            href="${escapeHTML(validUrl)}"
+            href="${escapeHTML(url)}"
             target="_blank"
             rel="noopener noreferrer"
-            ${validUrl === "#" ? 'aria-disabled="true"' : ""}
+            ${validUrl ? "" : 'aria-disabled="true"'}
           >
-            View repository <span aria-hidden="true">↗</span>
+            View project <span aria-hidden="true">↗</span>
           </a>
         </article>
       `;
@@ -151,14 +151,15 @@ function renderProjects(repositories) {
 function renderFeaturedFallback() {
   renderProjects([
     {
-      name: "quasar",
+      name: "Quasar",
       description:
-        "AI-powered Discord server assistant with secure automation, moderation, AI provider fallback, and human approval workflows.",
+        "My Discord AI assistant project, featuring multi-provider AI fallback and approval-based workflows.",
       language: "Python",
       stargazers_count: 0,
       forks_count: 0,
       html_url: "https://github.com/aceyen0969-new/Quasar",
       updated_at: "",
+      fallback: true,
       featured: true
     }
   ]);
@@ -170,126 +171,120 @@ async function initializeProjects() {
   }
 
   projectGrid.setAttribute("aria-busy", "true");
-  projectGrid.innerHTML = `
-    <p class="projects-message">Loading repositories from GitHub...</p>
-  `;
 
   try {
-    const response = await fetch("/api/projects", {
+    const response = await fetch(SITE_CONFIG.projectsEndpoint, {
       headers: {
         Accept: "application/json"
       }
     });
 
     if (!response.ok) {
-      throw new Error(
-        `The project service returned HTTP ${response.status}.`
-      );
+      throw new Error(`Projects request failed: ${response.status}`);
     }
 
-    const result = await response.json();
+    const data = await response.json();
 
-    if (!result || !Array.isArray(result.projects)) {
-      throw new Error("The project service returned invalid data.");
+    if (!Array.isArray(data.projects) || data.projects.length === 0) {
+      renderFeaturedFallback();
+      return;
     }
 
-    renderProjects(result.projects);
+    renderProjects(data.projects);
 
-    if (result.github_available === false) {
+    const existingNotice = document.querySelector("#projects-notice");
+
+    if (existingNotice) {
+      existingNotice.remove();
+    }
+
+    if (data.github_available === false) {
       const notice = document.createElement("p");
+
+      notice.id = "projects-notice";
       notice.className = "projects-message";
       notice.textContent =
         "GitHub is temporarily unavailable. Showing cached or featured projects.";
 
-      projectGrid.prepend(notice);
+      projectGrid.before(notice);
     }
   } catch (error) {
-    console.error("Project loading failed:", error);
+    console.error("Unable to load GitHub projects:", error);
 
     renderFeaturedFallback();
 
-    const notice = document.createElement("p");
-    notice.className = "projects-message";
-    notice.textContent =
-      "Some projects could not be loaded. You can still visit the featured repository.";
+    const existingNotice = document.querySelector("#projects-notice");
 
-    projectGrid.prepend(notice);
-  } finally {
-    projectGrid.setAttribute("aria-busy", "false");
+    if (!existingNotice) {
+      const notice = document.createElement("p");
+
+      notice.id = "projects-notice";
+      notice.className = "projects-message";
+      notice.textContent =
+        "GitHub is temporarily unavailable. Showing cached or featured projects.";
+
+      projectGrid.before(notice);
+    }
   }
 }
 
 function initializeContactForm() {
-  if (!contactForm || !formNote) {
+  if (!contactForm) {
     return;
   }
 
   contactForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const submitButton = contactForm.querySelector(
-      'button[type="submit"], button:not([type])'
-    );
-
-    const formData = new FormData(contactForm);
-    const name = String(formData.get("name") || "").trim();
-    const email = String(formData.get("email") || "").trim();
-    const message = String(formData.get("message") || "").trim();
-    const company = String(formData.get("company") || "").trim();
-
-    formNote.textContent = "";
-
-    if (!name || !email || !message) {
-      formNote.textContent = "Please complete every field.";
-      return;
+    if (formNote) {
+      formNote.textContent = "Sending your message...";
     }
+
+    const submitButton = contactForm.querySelector(
+      'button[type="submit"], input[type="submit"]'
+    );
 
     if (submitButton) {
       submitButton.disabled = true;
-      submitButton.textContent = "Sending...";
     }
 
     try {
-      const response = await fetch("/api/contact", {
+      const formData = new FormData(contactForm);
+      const payload = Object.fromEntries(formData.entries());
+
+      const response = await fetch(SITE_CONFIG.contactEndpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json"
         },
-        body: JSON.stringify({
-          name,
-          email,
-          message,
-          company
-        })
+        body: JSON.stringify(payload)
       });
 
-      let result;
-
-      try {
-        result = await response.json();
-      } catch {
-        result = {};
-      }
+      const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
         throw new Error(
-          result.error || "Your message could not be sent."
+          result.error || result.message || "Unable to send your message."
         );
       }
 
+      if (formNote) {
+        formNote.textContent =
+          result.message || "Your message was sent successfully!";
+      }
+
       contactForm.reset();
-      formNote.textContent =
-        result.message || "Your message was sent successfully.";
     } catch (error) {
       console.error("Contact form submission failed:", error);
-      formNote.textContent =
-        error.message ||
-        "Unable to send your message. Please try again later.";
+
+      if (formNote) {
+        formNote.textContent =
+          error.message || "Something went wrong. Please try again later.";
+      }
     } finally {
       if (submitButton) {
         submitButton.disabled = false;
-        submitButton.innerHTML = 'Send message <span>↗</span>';
       }
     }
   });
