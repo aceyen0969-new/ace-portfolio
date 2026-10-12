@@ -1395,3 +1395,23 @@ body {
     font-size: 11px;
   }
 }
+
+.hero > .hero-content {
+  padding-inline: clamp(12px, 2.5vw, 28px);
+}
+
+.hero-actions {
+  padding-inline: 0;
+}
+
+@media (max-width: 650px) {
+  .hero > .hero-content {
+    padding-inline: 16px;
+  }
+}
+
+@media (max-width: 360px) {
+  .hero > .hero-content {
+    padding-inline: 12px;
+  }
+}
