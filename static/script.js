@@ -1,8 +1,10 @@
 
 const SITE_CONFIG = {
   githubUsername: "aceyen0969-new",
+  featuredRepository: "quasar",
   repositoryPageSize: 100,
-  readmeConcurrency: 5
+  readmeConcurrency: 5,
+  readmeLimit: 12
 };
 
 const contactForm = document.querySelector("#contact-form");
@@ -126,6 +128,34 @@ function getRepositoryDescription(readme, fallbackDescription) {
     : result;
 }
 
+async function fetchGitHubJSON(url) {
+  const response = await fetch(url, {
+    headers: {
+      Accept: "application/vnd.github+json"
+    }
+  });
+
+  if (!response.ok) {
+    if (response.status === 403 || response.status === 429) {
+      throw new Error(
+        "GitHub's API rate limit was reached. Please try again later."
+      );
+    }
+
+    if (response.status === 404) {
+      throw new Error(
+        "The configured GitHub account or featured repository could not be found."
+      );
+    }
+
+    throw new Error(
+      `GitHub could not load repository data (HTTP ${response.status}).`
+    );
+  }
+
+  return response.json();
+}
+
 async function fetchRepositories() {
   const repositories = [];
   let page = 1;
@@ -146,32 +176,10 @@ async function fetchRepositories() {
     );
     url.searchParams.set("page", String(page));
 
-    const response = await fetch(url, {
-      headers: {
-        Accept: "application/vnd.github+json"
-      }
-    });
-
-    if (!response.ok) {
-      if (response.status === 403 || response.status === 429) {
-        throw new Error(
-          "GitHub's API rate limit was reached. Please try again later."
-        );
-      }
-
-      if (response.status === 404) {
-        throw new Error("The configured GitHub account could not be found.");
-      }
-
-      throw new Error(
-        `GitHub could not load repositories (HTTP ${response.status}).`
-      );
-    }
-
-    const batch = await response.json();
+    const batch = await fetchGitHubJSON(url);
 
     if (!Array.isArray(batch)) {
-      throw new Error("GitHub returned an unexpected response.");
+      throw new Error("GitHub returned an unexpected repository response.");
     }
 
     repositories.push(...batch);
@@ -191,6 +199,25 @@ async function fetchRepositories() {
       !repository.fork
     );
   });
+}
+
+async function fetchFeaturedRepository() {
+  const url =
+    `https://api.github.com/repos/` +
+    `${encodeURIComponent(SITE_CONFIG.githubUsername)}/` +
+    `${encodeURIComponent(SITE_CONFIG.featuredRepository)}`;
+
+  const repository = await fetchGitHubJSON(url);
+
+  if (
+    repository.private ||
+    repository.disabled ||
+    !repository.html_url
+  ) {
+    throw new Error("The featured repository is not publicly available.");
+  }
+
+  return repository;
 }
 
 async function fetchReadme(owner, repository) {
@@ -221,15 +248,13 @@ async function fetchReadme(owner, repository) {
 
       if (parsed && typeof parsed.content === "string") {
         if (parsed.encoding === "base64") {
-          return decodeURIComponent(
-            Array.from(
-              atob(parsed.content.replace(/\s/g, ""))
-            )
-              .map((character) =>
-                `%${character.charCodeAt(0).toString(16).padStart(2, "0")}`
-              )
-              .join("")
+          const binary = atob(parsed.content.replace(/\s/g, ""));
+          const bytes = Uint8Array.from(
+            binary,
+            (character) => character.charCodeAt(0)
           );
+
+          return new TextDecoder().decode(bytes);
         }
 
         return parsed.content;
@@ -292,18 +317,32 @@ function renderProjects(repositories) {
 
   projectGrid.innerHTML = repositories
     .map((repository) => {
+      const isFeatured =
+        repository.name.toLowerCase() ===
+        SITE_CONFIG.featuredRepository.toLowerCase();
+
       const name = escapeHTML(repository.name);
-      const description = escapeHTML(repository.portfolioDescription);
+      const description = escapeHTML(
+        repository.portfolioDescription ||
+          repository.description ||
+          "Explore this project on GitHub."
+      );
       const language = escapeHTML(repository.language || "Various");
       const stars = Number(repository.stargazers_count) || 0;
       const forks = Number(repository.forks_count) || 0;
       const url = escapeHTML(repository.html_url);
+      const cardClass = isFeatured
+        ? "project-card project-card-featured"
+        : "project-card";
+      const label = isFeatured
+        ? "Featured project"
+        : "Public repository";
 
       return `
-        <article class="project-card">
+        <article class="${cardClass}">
           <div class="project-card-top">
             <span class="project-icon" aria-hidden="true">&lt;/&gt;</span>
-            <span class="project-visibility">Public repository</span>
+            <span class="project-visibility">${label}</span>
           </div>
 
           <h3>${name}</h3>
@@ -341,29 +380,89 @@ async function initializeProjects() {
     return;
   }
 
+  projectGrid.setAttribute("aria-busy", "true");
+
   try {
-    const repositories = await fetchRepositories();
+    const [repositories, featuredRepository] = await Promise.all([
+      fetchRepositories(),
+      fetchFeaturedRepository()
+    ]);
+
+    const repositoryMap = new Map();
+
+    repositories.forEach((repository) => {
+      repositoryMap.set(repository.name.toLowerCase(), repository);
+    });
+
+    repositoryMap.set(
+      featuredRepository.name.toLowerCase(),
+      featuredRepository
+    );
+
+    const featuredName = SITE_CONFIG.featuredRepository.toLowerCase();
+
+    const orderedRepositories = Array.from(repositoryMap.values()).sort(
+      (first, second) => {
+        const firstFeatured =
+          first.name.toLowerCase() === featuredName;
+        const secondFeatured =
+          second.name.toLowerCase() === featuredName;
+
+        if (firstFeatured !== secondFeatured) {
+          return firstFeatured ? -1 : 1;
+        }
+
+        return (
+          new Date(second.updated_at || 0).getTime() -
+          new Date(first.updated_at || 0).getTime()
+        );
+      }
+    );
+
+    const readmeRepositories = orderedRepositories.slice(
+      0,
+      SITE_CONFIG.readmeLimit
+    );
 
     const enrichedRepositories = await mapWithConcurrency(
-      repositories,
+      readmeRepositories,
       SITE_CONFIG.readmeConcurrency,
       async (repository) => {
         const readme = await fetchReadme(
-          SITE_CONFIG.githubUsername,
+          repository.owner?.login || SITE_CONFIG.githubUsername,
           repository.name
         );
 
+        const isFeatured =
+          repository.name.toLowerCase() === featuredName;
+
         return {
           ...repository,
-          portfolioDescription: getRepositoryDescription(
-            readme,
-            repository.description
-          )
+          portfolioDescription: isFeatured
+            ? "My Discord AI assistant project, featuring multi-provider AI fallback and approval-based workflows."
+            : getRepositoryDescription(readme, repository.description)
         };
       }
     );
 
-    renderProjects(enrichedRepositories);
+    const enrichedMap = new Map(
+      enrichedRepositories.map((repository) => [
+        repository.name.toLowerCase(),
+        repository
+      ])
+    );
+
+    const finalRepositories = orderedRepositories.map((repository) => {
+      return (
+        enrichedMap.get(repository.name.toLowerCase()) || {
+          ...repository,
+          portfolioDescription:
+            repository.description || "Explore this project on GitHub."
+        }
+      );
+    });
+
+    renderProjects(finalRepositories);
   } catch (error) {
     console.error("Failed to load GitHub projects:", error);
 
@@ -390,7 +489,6 @@ async function initializeProjects() {
     document
       .querySelector("#retry-projects")
       ?.addEventListener("click", () => {
-        projectGrid.setAttribute("aria-busy", "true");
         projectGrid.innerHTML = `
           <p class="projects-message">Loading repositories from GitHub...</p>
         `;
@@ -427,7 +525,11 @@ function initializeContactForm() {
       return;
     }
 
-    if (name.length > 80 || email.length > 150 || message.length > 3000) {
+    if (
+      name.length > 80 ||
+      email.length > 150 ||
+      message.length > 3000
+    ) {
       formNote.textContent = "One or more fields are too long.";
       return;
     }
