@@ -1,7 +1,10 @@
+
 import html
 import os
 import re
+import time
 
+import requests
 import resend
 from flask import Flask, jsonify, request, send_from_directory
 
@@ -9,6 +12,137 @@ app = Flask(__name__, static_folder="static", static_url_path="")
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024
 
 EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+GITHUB_USERNAME = "aceyen0969-new"
+FEATURED_REPOSITORY = "quasar"
+GITHUB_API = "https://api.github.com"
+PROJECT_CACHE_SECONDS = 600
+
+_projects_cache = None
+_projects_cache_time = 0
+
+FALLBACK_PROJECT = {
+    "name": "quasar",
+    "description": "My Discord AI assistant project, featuring multi-provider AI fallback and approval-based workflows.",
+    "html_url": "https://github.com/aceyen0969-new/quasar",
+    "language": "Python",
+    "stargazers_count": 0,
+    "forks_count": 0,
+    "updated_at": "",
+    "featured": True,
+    "fallback": True,
+}
+
+
+def github_headers():
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+
+    token = os.environ.get("GITHUB_TOKEN", "").strip()
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    return headers
+
+
+def fetch_github_projects():
+    response = requests.get(
+        f"{GITHUB_API}/users/{GITHUB_USERNAME}/repos",
+        headers=github_headers(),
+        params={
+            "type": "owner",
+            "sort": "updated",
+            "direction": "desc",
+            "per_page": 100,
+            "page": 1,
+        },
+        timeout=15,
+    )
+    response.raise_for_status()
+    repositories = response.json()
+
+    if not isinstance(repositories, list):
+        raise ValueError("GitHub returned an unexpected repository response.")
+
+    projects = []
+
+    for repository in repositories:
+        if (
+            repository.get("private")
+            or repository.get("archived")
+            or repository.get("disabled")
+            or repository.get("fork")
+        ):
+            continue
+
+        projects.append({
+            "name": repository.get("name", "Untitled project"),
+            "description": repository.get("description") or "No description provided yet.",
+            "html_url": repository.get("html_url", ""),
+            "language": repository.get("language") or "Other",
+            "stargazers_count": repository.get("stargazers_count", 0),
+            "forks_count": repository.get("forks_count", 0),
+            "updated_at": repository.get("updated_at") or "",
+            "featured": repository.get("name", "").lower() == FEATURED_REPOSITORY,
+            "fallback": False,
+        })
+
+    if not any(project["featured"] for project in projects):
+        response = requests.get(
+            f"{GITHUB_API}/repos/{GITHUB_USERNAME}/{FEATURED_REPOSITORY}",
+            headers=github_headers(),
+            timeout=15,
+        )
+        response.raise_for_status()
+        repository = response.json()
+
+        if not repository.get("private"):
+            projects.append({
+                "name": repository.get("name", FEATURED_REPOSITORY),
+                "description": repository.get("description") or FALLBACK_PROJECT["description"],
+                "html_url": repository.get("html_url", FALLBACK_PROJECT["html_url"]),
+                "language": repository.get("language") or "Python",
+                "stargazers_count": repository.get("stargazers_count", 0),
+                "forks_count": repository.get("forks_count", 0),
+                "updated_at": repository.get("updated_at") or "",
+                "featured": True,
+                "fallback": False,
+            })
+
+    projects.sort(
+        key=lambda project: (
+            not project["featured"],
+            project["name"].lower(),
+        )
+    )
+
+    return projects
+
+
+def get_projects():
+    global _projects_cache, _projects_cache_time
+
+    current_time = time.time()
+
+    if (
+        _projects_cache is not None
+        and current_time - _projects_cache_time < PROJECT_CACHE_SECONDS
+    ):
+        return _projects_cache, True
+
+    try:
+        projects = fetch_github_projects()
+        _projects_cache = projects
+        _projects_cache_time = current_time
+        return projects, True
+    except (requests.RequestException, ValueError) as error:
+        app.logger.warning("GitHub project fetch failed: %s", error)
+
+        if _projects_cache is not None:
+            return _projects_cache, False
+
+        return [FALLBACK_PROJECT.copy()], False
 
 
 @app.get("/")
@@ -19,6 +153,15 @@ def home():
 @app.get("/health")
 def health():
     return jsonify({"status": "ok"}), 200
+
+
+@app.get("/api/projects")
+def projects():
+    project_list, github_available = get_projects()
+    return jsonify({
+        "projects": project_list,
+        "github_available": github_available,
+    }), 200
 
 
 @app.post("/api/contact")
