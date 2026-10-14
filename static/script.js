@@ -1,8 +1,18 @@
+
 const SITE_CONFIG = {
   githubUsername: "aceyen0969-new",
   featuredRepository: "quasar",
   projectsEndpoint: "/api/projects",
   contactEndpoint: "/api/contact"
+};
+
+const DEMO_URLS = {
+  "still-form-barbershop": "https://still-form-barbershop.onrender.com/",
+  "sunday-table-restaurant": "https://sunday-table-restaurant.onrender.com/",
+  "kinetiq-studio": "https://kinetiq-studio-x3fd.onrender.com/",
+  "noir-atelier": "https://noir-atelier-g9re.onrender.com/",
+  "velora-wellness": "https://velora-wellness.onrender.com/",
+  "ember-house-restaurant": "https://ember-house-restaurant-76jv.onrender.com/"
 };
 
 const contactForm = document.querySelector("#contact-form");
@@ -24,21 +34,66 @@ function escapeHTML(value) {
 }
 
 function safeImageURL(value) {
-  if (!value) {
-    return "";
-  }
-
   try {
-    const url = new URL(String(value));
-
-    if (url.protocol !== "https:") {
-      return "";
-    }
-
-    return url.href;
+    const url = new URL(String(value || ""));
+    return url.protocol === "https:" ? url.href : "";
   } catch {
     return "";
   }
+}
+
+function getPreviewURL(repository) {
+  const repositoryName = String(repository.name || "").toLowerCase();
+  const demoURL = DEMO_URLS[repositoryName];
+
+  if (demoURL) {
+    return `https://image.thum.io/get/width/1200/crop/675/noanimate/${demoURL}`;
+  }
+
+  return safeImageURL(repository.image_url);
+}
+
+function renderProjectCover(repository) {
+  const name = String(repository.name || "Untitled project");
+  const language = String(repository.language || "Various");
+  const monogram = name
+    .replace(/[^a-zA-Z0-9 ]/g, " ")
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0] || "")
+    .join("")
+    .toUpperCase()
+    .slice(0, 2) || "</>";
+
+  return `
+    <div class="project-cover">
+      <span class="project-cover-kicker">PROJECT / ${escapeHTML(language)}</span>
+      <span class="project-cover-monogram">${escapeHTML(monogram)}</span>
+      <span class="project-cover-name">${escapeHTML(name)}</span>
+      <span class="project-cover-caption">BUILT WITH CURIOSITY.</span>
+    </div>
+  `;
+}
+
+function renderProjectPreview(repository) {
+  const imageURL = getPreviewURL(repository);
+
+  if (!imageURL) {
+    return renderProjectCover(repository);
+  }
+
+  const alt = `${repository.name || "Project"} preview`;
+
+  return `
+    <img
+      class="project-preview-image"
+      src="${escapeHTML(imageURL)}"
+      alt="${escapeHTML(alt)}"
+      loading="lazy"
+      referrerpolicy="no-referrer"
+    >
+  `;
 }
 
 function initializeNavigation() {
@@ -51,7 +106,6 @@ function initializeNavigation() {
 
   menuToggle.addEventListener("click", () => {
     const isExpanded = menuToggle.getAttribute("aria-expanded") === "true";
-
     menuToggle.setAttribute("aria-expanded", String(!isExpanded));
     navigation.classList.toggle("active", !isExpanded);
   });
@@ -70,22 +124,6 @@ function initializeFooter() {
   if (yearElement) {
     yearElement.textContent = new Date().getFullYear();
   }
-}
-
-function initializeProjectImages() {
-  if (!projectGrid) {
-    return;
-  }
-
-  projectGrid.querySelectorAll(".project-preview-image").forEach((image) => {
-    image.addEventListener(
-      "error",
-      () => {
-        image.closest(".project-preview")?.remove();
-      },
-      { once: true }
-    );
-  });
 }
 
 function renderProjects(repositories) {
@@ -120,43 +158,29 @@ function renderProjects(repositories) {
     );
   });
 
-  projectGrid.innerHTML = orderedRepositories
-    .map((repository) => {
-      const name = escapeHTML(repository.name || "Untitled project");
-      const description = escapeHTML(
-        repository.description || "Explore this project on GitHub."
-      );
-      const language = escapeHTML(repository.language || "Various");
-      const stars = Number(repository.stargazers_count) || 0;
-      const forks = Number(repository.forks_count) || 0;
-      const rawUrl = String(repository.html_url || "");
-      const imageUrl = safeImageURL(repository.image_url);
+  projectGrid.innerHTML = orderedRepositories.map((repository) => {
+    const name = escapeHTML(repository.name || "Untitled project");
+    const description = escapeHTML(
+      repository.description || "Explore this project on GitHub."
+    );
+    const language = escapeHTML(repository.language || "Various");
+    const stars = Number(repository.stargazers_count) || 0;
+    const forks = Number(repository.forks_count) || 0;
+    const rawURL = String(repository.html_url || "");
 
-      const validUrl = /^https:\/\/github\.com\/[^/]+\/[^/]+\/?$/i.test(
-        rawUrl
-      );
+    const validURL =
+      /^https:\/\/github\.com\/[^/]+\/[^/]+\/?$/i.test(rawURL);
 
-      const url = validUrl ? rawUrl : "#";
-      const isFeatured = repository.name?.toLowerCase() === featuredName;
+    const url = validURL ? rawURL : "#";
+    const isFeatured = repository.name?.toLowerCase() === featuredName;
 
-      const preview = imageUrl
-        ? `
-          <div class="project-preview">
-            <img
-              class="project-preview-image"
-              src="${escapeHTML(imageUrl)}"
-              alt="Preview image for ${name}"
-              loading="lazy"
-              decoding="async"
-            >
-          </div>
-        `
-        : "";
+    return `
+      <article class="project-card">
+        <div class="project-preview">
+          ${renderProjectPreview(repository)}
+        </div>
 
-      return `
-        <article class="project-card">
-          ${preview}
-
+        <div class="project-card-content">
           <div class="project-card-top">
             <span class="project-icon" aria-hidden="true">&lt;/&gt;</span>
             <span class="project-visibility">
@@ -173,9 +197,8 @@ function renderProjects(repositories) {
               <span class="language-dot" aria-hidden="true"></span>
               ${language}
             </span>
-
             <span>&#9733; ${stars}</span>
-            <span>&#9398; ${forks}</span>
+            <span>&#8919; ${forks}</span>
           </div>
 
           <a
@@ -183,16 +206,33 @@ function renderProjects(repositories) {
             href="${escapeHTML(url)}"
             target="_blank"
             rel="noopener noreferrer"
-            ${validUrl ? "" : 'aria-disabled="true"'}
+            ${validURL ? "" : 'aria-disabled="true"'}
           >
             View project <span aria-hidden="true">&#8599;</span>
           </a>
-        </article>
-      `;
-    })
-    .join("");
+        </div>
+      </article>
+    `;
+  }).join("");
 
-  initializeProjectImages();
+  projectGrid.querySelectorAll(".project-preview-image").forEach((image) => {
+    image.addEventListener("error", () => {
+      const repositoryCard = image.closest(".project-card");
+      const title = repositoryCard?.querySelector("h3")?.textContent || "Project";
+      const language =
+        repositoryCard?.querySelector(".project-language")?.textContent?.trim() ||
+        "Various";
+      const preview = image.closest(".project-preview");
+
+      if (preview) {
+        preview.innerHTML = renderProjectCover({
+          name: title,
+          language
+        });
+      }
+    }, { once: true });
+  });
+
   projectGrid.setAttribute("aria-busy", "false");
 }
 
@@ -208,8 +248,7 @@ function renderFeaturedFallback() {
       html_url: "https://github.com/aceyen0969-new/Quasar",
       updated_at: "",
       fallback: true,
-      featured: true,
-      image_url: null
+      featured: true
     }
   ]);
 }
@@ -249,7 +288,6 @@ async function initializeProjects() {
 
     if (data.github_available === false) {
       const notice = document.createElement("p");
-
       notice.id = "projects-notice";
       notice.className = "projects-message";
       notice.textContent =
@@ -259,14 +297,10 @@ async function initializeProjects() {
     }
   } catch (error) {
     console.error("Unable to load GitHub projects:", error);
-
     renderFeaturedFallback();
 
-    const existingNotice = document.querySelector("#projects-notice");
-
-    if (!existingNotice) {
+    if (!document.querySelector("#projects-notice")) {
       const notice = document.createElement("p");
-
       notice.id = "projects-notice";
       notice.className = "projects-message";
       notice.textContent =
