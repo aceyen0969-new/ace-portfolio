@@ -1415,3 +1415,223 @@ body {
     padding-inline: 12px;
   }
 }
+.website-concepts {
+  position: relative;
+}
+
+.concept-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.concept-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface, rgba(255, 255, 255, 0.025));
+  transition: transform 220ms ease, border-color 220ms ease;
+}
+
+.concept-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(167, 139, 250, 0.45);
+}
+
+.concept-art {
+  position: relative;
+  display: flex;
+  min-height: 210px;
+  overflow: hidden;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  isolation: isolate;
+}
+
+.concept-art::before,
+.concept-art::after {
+  position: absolute;
+  z-index: -1;
+  content: "";
+}
+
+.concept-art::before {
+  inset: 0;
+  background: radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.09), transparent 48%);
+}
+
+.concept-art::after {
+  width: 190px;
+  height: 190px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+}
+
+.concept-kinetiq .concept-art {
+  background: #171a17;
+  color: #d7ff42;
+}
+
+.concept-kinetiq .concept-art::after {
+  border-color: rgba(215, 255, 66, 0.35);
+  box-shadow: 0 0 0 25px rgba(215, 255, 66, 0.035), 0 0 0 50px rgba(215, 255, 66, 0.025);
+}
+
+.concept-noir .concept-art {
+  background: #e8e2d8;
+  color: #28251f;
+}
+
+.concept-noir .concept-art::after {
+  border-color: rgba(40, 37, 31, 0.3);
+  border-radius: 0;
+  transform: rotate(45deg);
+}
+
+.concept-velora .concept-art {
+  background: #dce4d2;
+  color: #344a35;
+}
+
+.concept-velora .concept-art::after {
+  width: 150px;
+  height: 190px;
+  border-radius: 80% 20% 70% 30%;
+  transform: rotate(-35deg);
+  border-color: rgba(52, 74, 53, 0.35);
+}
+
+.concept-ember .concept-art {
+  background: #281914;
+  color: #f0b36d;
+}
+
+.concept-ember .concept-art::after {
+  width: 170px;
+  height: 170px;
+  border-color: rgba(240, 179, 109, 0.4);
+  box-shadow: 0 0 60px rgba(202, 83, 35, 0.16);
+}
+
+.concept-index {
+  position: absolute;
+  top: 17px;
+  left: 18px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  opacity: 0.8;
+}
+
+.concept-art-title {
+  font-family: var(--heading, "Space Grotesk", sans-serif);
+  font-size: clamp(88px, 12vw, 140px);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -10px;
+}
+
+.concept-art-title span {
+  opacity: 0.65;
+}
+
+.concept-art-caption {
+  position: absolute;
+  bottom: 17px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-align: center;
+}
+
+.concept-content {
+  display: flex;
+  min-height: 235px;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 24px;
+}
+
+.concept-label {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1.2px;
+}
+
+.concept-content h3 {
+  margin: 12px 0 8px;
+  font-size: 24px;
+  letter-spacing: -0.7px;
+}
+
+.concept-content p {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.85;
+}
+
+.concept-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: auto;
+}
+
+.concept-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text, #f5f5f5);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 180ms ease;
+}
+
+.concept-link:hover {
+  color: #c4b5fd;
+}
+
+.concept-link-secondary {
+  color: var(--muted);
+}
+
+.concept-status {
+  display: inline-flex;
+  margin-top: auto;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+@media (max-width: 760px) {
+  .concept-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .concept-art {
+    min-height: 190px;
+  }
+
+  .concept-content {
+    min-height: 0;
+    padding: 20px;
+  }
+
+  .concept-content p {
+    margin-bottom: 20px;
+  }
+
+  .concept-actions,
+  .concept-status {
+    margin-top: 0;
+  }
+}
