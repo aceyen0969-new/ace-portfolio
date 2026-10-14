@@ -1635,3 +1635,24 @@ body {
     margin-top: 0;
   }
 }
+
+.concept-stillform .concept-art {
+  background: radial-gradient(ellipse at 80% 20%, #34342f 0%, #191a18 42%, #101110 100%);
+  color: #e7e2d6;
+}
+
+.concept-stillform .concept-art-title {
+  font-family: var(--heading, sans-serif);
+  letter-spacing: -0.09em;
+}
+
+.concept-sunday .concept-art {
+  background: radial-gradient(ellipse at 80% 20%, #64523d 0%, #342c24 43%, #1b1916 100%);
+  color: #f1e3c9;
+}
+
+.concept-sunday .concept-art-title {
+  font-family: Georgia, serif;
+  font-style: italic;
+}
+
