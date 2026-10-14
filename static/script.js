@@ -23,6 +23,24 @@ function escapeHTML(value) {
   });
 }
 
+function safeImageURL(value) {
+  if (!value) {
+    return "";
+  }
+
+  try {
+    const url = new URL(String(value));
+
+    if (url.protocol !== "https:") {
+      return "";
+    }
+
+    return url.href;
+  } catch {
+    return "";
+  }
+}
+
 function initializeNavigation() {
   const menuToggle = document.querySelector(".menu-toggle");
   const navigation = document.querySelector(".nav-links");
@@ -54,6 +72,22 @@ function initializeFooter() {
   }
 }
 
+function initializeProjectImages() {
+  if (!projectGrid) {
+    return;
+  }
+
+  projectGrid.querySelectorAll(".project-preview-image").forEach((image) => {
+    image.addEventListener(
+      "error",
+      () => {
+        image.closest(".project-preview")?.remove();
+      },
+      { once: true }
+    );
+  });
+}
+
 function renderProjects(repositories) {
   if (!projectGrid) {
     return;
@@ -73,11 +107,8 @@ function renderProjects(repositories) {
   const featuredName = SITE_CONFIG.featuredRepository.toLowerCase();
 
   const orderedRepositories = [...repositories].sort((first, second) => {
-    const firstFeatured =
-      first.name?.toLowerCase() === featuredName;
-
-    const secondFeatured =
-      second.name?.toLowerCase() === featuredName;
+    const firstFeatured = first.name?.toLowerCase() === featuredName;
+    const secondFeatured = second.name?.toLowerCase() === featuredName;
 
     if (firstFeatured !== secondFeatured) {
       return firstFeatured ? -1 : 1;
@@ -99,17 +130,33 @@ function renderProjects(repositories) {
       const stars = Number(repository.stargazers_count) || 0;
       const forks = Number(repository.forks_count) || 0;
       const rawUrl = String(repository.html_url || "");
+      const imageUrl = safeImageURL(repository.image_url);
 
       const validUrl = /^https:\/\/github\.com\/[^/]+\/[^/]+\/?$/i.test(
         rawUrl
       );
 
       const url = validUrl ? rawUrl : "#";
-      const isFeatured =
-        repository.name?.toLowerCase() === featuredName;
+      const isFeatured = repository.name?.toLowerCase() === featuredName;
+
+      const preview = imageUrl
+        ? `
+          <div class="project-preview">
+            <img
+              class="project-preview-image"
+              src="${escapeHTML(imageUrl)}"
+              alt="Preview image for ${name}"
+              loading="lazy"
+              decoding="async"
+            >
+          </div>
+        `
+        : "";
 
       return `
         <article class="project-card">
+          ${preview}
+
           <div class="project-card-top">
             <span class="project-icon" aria-hidden="true">&lt;/&gt;</span>
             <span class="project-visibility">
@@ -127,8 +174,8 @@ function renderProjects(repositories) {
               ${language}
             </span>
 
-            <span>★ ${stars}</span>
-            <span>⑂ ${forks}</span>
+            <span>&#9733; ${stars}</span>
+            <span>&#9398; ${forks}</span>
           </div>
 
           <a
@@ -138,13 +185,14 @@ function renderProjects(repositories) {
             rel="noopener noreferrer"
             ${validUrl ? "" : 'aria-disabled="true"'}
           >
-            View project <span aria-hidden="true">↗</span>
+            View project <span aria-hidden="true">&#8599;</span>
           </a>
         </article>
       `;
     })
     .join("");
 
+  initializeProjectImages();
   projectGrid.setAttribute("aria-busy", "false");
 }
 
@@ -160,7 +208,8 @@ function renderFeaturedFallback() {
       html_url: "https://github.com/aceyen0969-new/Quasar",
       updated_at: "",
       fallback: true,
-      featured: true
+      featured: true,
+      image_url: null
     }
   ]);
 }

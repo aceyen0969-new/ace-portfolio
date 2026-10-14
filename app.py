@@ -1,8 +1,9 @@
-
 import html
 import os
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from urllib.parse import quote, unquote, urljoin, urlsplit, urlunsplit
 
 import requests
 import resend
@@ -16,6 +17,22 @@ GITHUB_USERNAME = "aceyen0969-new"
 FEATURED_REPOSITORY = "quasar"
 GITHUB_API = "https://api.github.com"
 PROJECT_CACHE_SECONDS = 600
+IMAGE_REQUEST_TIMEOUT = 5
+IMAGE_WORKERS = 8
+
+MARKDOWN_IMAGE_PATTERN = re.compile(
+    r"!\[[^\]]*\]\(\s*(?:<([^>]+)>|([^\s)]+))"
+    r"(?:\s+(?:\"[^\"]*\"|'[^']*'))?\s*\)",
+    re.IGNORECASE,
+)
+HTML_IMAGE_PATTERN = re.compile(
+    r"<img\b[^>]*\bsrc\s*=\s*[\"']([^\"']+)[\"']",
+    re.IGNORECASE,
+)
+GITHUB_BLOB_PATTERN = re.compile(
+    r"^https://github\.com/([^/]+)/([^/]+)/blob/([^/]+)/(.+)$",
+    re.IGNORECASE,
+)
 
 _projects_cache = None
 _projects_cache_time = 0
@@ -30,6 +47,7 @@ FALLBACK_PROJECT = {
     "updated_at": "",
     "featured": True,
     "fallback": True,
+    "image_url": None,
 }
 
 
@@ -44,6 +62,203 @@ def github_headers():
         headers["Authorization"] = f"Bearer {token}"
 
     return headers
+
+
+def raw_file_url(owner, repository, branch, path):
+    owner = quote(owner, safe="")
+    repository = quote(repository, safe="")
+    branch = quote(branch, safe="")
+    path = quote(unquote(path).lstrip("/"), safe="/:@!$&'()*+,;=-._~")
+
+    return (
+        f"https://raw.githubusercontent.com/"
+        f"{owner}/{repository}/{branch}/{path}"
+    )
+
+
+def preview_image_url(repository, branch):
+    url = raw_file_url(
+        GITHUB_USERNAME,
+        repository,
+        branch,
+        "screenshots/preview.png",
+    )
+
+    try:
+        response = requests.head(
+            url,
+            allow_redirects=True,
+            headers={"User-Agent": "ace-portfolio"},
+            timeout=IMAGE_REQUEST_TIMEOUT,
+        )
+
+        if response.status_code == 200:
+            return response.url
+    except requests.RequestException:
+        app.logger.debug(
+            "Preview image lookup failed for %s.",
+            repository,
+        )
+
+    return None
+
+
+def fetch_readme(repository, branch):
+    filenames = ("README.md", "readme.md", "Readme.md")
+
+    for filename in filenames:
+        url = raw_file_url(
+            GITHUB_USERNAME,
+            repository,
+            branch,
+            filename,
+        )
+
+        try:
+            response = requests.get(
+                url,
+                headers={"User-Agent": "ace-portfolio"},
+                timeout=IMAGE_REQUEST_TIMEOUT,
+            )
+
+            if response.status_code == 200:
+                return response.text, response.url
+        except requests.RequestException:
+            app.logger.debug(
+                "README lookup failed for %s.",
+                repository,
+            )
+
+    return None, None
+
+
+def normalize_readme_image(source, readme_url, repository, branch):
+    source = html.unescape(source.strip())
+
+    if not source or source.startswith("#") or source.lower().startswith("data:"):
+        return None
+
+    if source.startswith("//"):
+        source = f"https:{source}"
+
+    match = GITHUB_BLOB_PATTERN.match(source)
+
+    if match:
+        owner, repo_name, image_branch, path = match.groups()
+        return raw_file_url(owner, repo_name, image_branch, path)
+
+    if source.startswith("/"):
+        return raw_file_url(
+            GITHUB_USERNAME,
+            repository,
+            branch,
+            source,
+        )
+
+    parsed = urlsplit(source)
+
+    if parsed.scheme:
+        if parsed.scheme.lower() not in ("http", "https"):
+            return None
+
+        if parsed.scheme.lower() != "https":
+            return None
+
+        if not parsed.netloc:
+            return None
+
+        return urlunsplit(parsed)
+
+    resolved = urljoin(readme_url, source)
+    parsed = urlsplit(resolved)
+
+    if parsed.scheme != "https" or not parsed.netloc:
+        return None
+
+    return urlunsplit(parsed)
+
+
+def first_readme_image(readme, readme_url, repository, branch):
+    candidates = []
+
+    for match in MARKDOWN_IMAGE_PATTERN.finditer(readme):
+        source = match.group(1) or match.group(2)
+        candidates.append((match.start(), source))
+
+    for match in HTML_IMAGE_PATTERN.finditer(readme):
+        candidates.append((match.start(), match.group(1)))
+
+    candidates.sort(key=lambda candidate: candidate[0])
+
+    for _, source in candidates:
+        image_url = normalize_readme_image(
+            source,
+            readme_url,
+            repository,
+            branch,
+        )
+
+        if image_url:
+            return image_url
+
+    return None
+
+
+def discover_repository_image(repository, branch):
+    image_url = preview_image_url(repository, branch)
+
+    if image_url:
+        return image_url
+
+    readme, readme_url = fetch_readme(repository, branch)
+
+    if not readme or not readme_url:
+        return None
+
+    return first_readme_image(
+        readme,
+        readme_url,
+        repository,
+        branch,
+    )
+
+
+def attach_project_images(projects):
+    futures = {}
+
+    with ThreadPoolExecutor(max_workers=IMAGE_WORKERS) as executor:
+        for project in projects:
+            project["image_url"] = None
+
+            if project.get("fallback"):
+                continue
+
+            repository = project.get("name")
+            branch = project.pop("_default_branch", "main")
+
+            if not repository:
+                continue
+
+            future = executor.submit(
+                discover_repository_image,
+                repository,
+                branch,
+            )
+            futures[future] = project
+
+        for future in as_completed(futures):
+            project = futures[future]
+
+            try:
+                project["image_url"] = future.result()
+            except Exception:
+                app.logger.exception(
+                    "Image discovery failed for %s.",
+                    project.get("name"),
+                )
+                project["image_url"] = None
+
+    return projects
 
 
 def fetch_github_projects():
@@ -86,6 +301,8 @@ def fetch_github_projects():
             "updated_at": repository.get("updated_at") or "",
             "featured": repository.get("name", "").lower() == FEATURED_REPOSITORY,
             "fallback": False,
+            "image_url": None,
+            "_default_branch": repository.get("default_branch") or "main",
         })
 
     if not any(project["featured"] for project in projects):
@@ -108,7 +325,11 @@ def fetch_github_projects():
                 "updated_at": repository.get("updated_at") or "",
                 "featured": True,
                 "fallback": False,
+                "image_url": None,
+                "_default_branch": repository.get("default_branch") or "main",
             })
+
+    projects = attach_project_images(projects)
 
     projects.sort(
         key=lambda project: (
@@ -134,7 +355,7 @@ def get_projects():
     try:
         projects = fetch_github_projects()
         _projects_cache = projects
-        _projects_cache_time = current_time
+        _projects_cache_time = time.time()
         return projects, True
     except (requests.RequestException, ValueError) as error:
         app.logger.warning("GitHub project fetch failed: %s", error)
